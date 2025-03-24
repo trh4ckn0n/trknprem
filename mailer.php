@@ -1,19 +1,13 @@
 <?php
-require 'vendor/autoload.php'; // Charge Composer
+require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use Dotenv\Dotenv;
 
-// Charge .env
+// Charger .env
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
-
-// Fonction d'affichage pour interactivité
-function prompt($message) {
-    echo $message . " : ";
-    return trim(fgets(STDIN));
-}
 
 // Configs SMTP
 $smtpConfigs = [
@@ -21,7 +15,7 @@ $smtpConfigs = [
         'MAILHOST' => 'mail.eant.tech',
         'MAILPORT' => 587,
         'MAILUSER' => 'soporte@eant.tech',
-        'MAILPASS' => 'MAILPASS_EANT',
+        'MAILPASS' => getenv('MAILPASS_EANT'),
         'MAILFROM' => 'soporte@eant.tech',
         'FROMNAME' => 'SoporteEANT'
     ],
@@ -29,7 +23,7 @@ $smtpConfigs = [
         'MAILHOST' => 'smtp.mailtrap.io',
         'MAILPORT' => 2525,
         'MAILUSER' => '92ade88cfc26b9',
-        'MAILPASS' => 'MAILPASS_MAILTRAP',
+        'MAILPASS' => getenv('MAILPASS_MAILTRAP'),
         'MAILFROM' => 'designerescapade@gmail.com',
         'FROMNAME' => 'Escapade Zanzibar'
     ],
@@ -37,32 +31,31 @@ $smtpConfigs = [
         'MAILHOST' => 'just181.justhost.com',
         'MAILPORT' => 465,
         'MAILUSER' => 'no-reply@primucapital.com',
-        'MAILPASS' => 'MAILPASS_JUSTHOST',
+        'MAILPASS' => getenv('MAILPASS_JUSTHOST'),
         'MAILFROM' => 'no-reply@primucapital.com',
         'FROMNAME' => 'PRIMUCAPITAL'
     ]
 ];
 
-// Sélection du SMTP
-echo "\nSélectionnez un SMTP : \n";
-foreach (array_keys($smtpConfigs) as $key) {
-    echo "- $key\n";
+// Vérifier si le formulaire a été soumis
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $smtpChoice = $_POST['smtp'] ?? null;
+    $recipient = $_POST['to'] ?? null;
+    $subject = $_POST['subject'] ?? null;
+    $message = $_POST['message'] ?? null;
+
+    // Vérifier si le SMTP est valide
+    if (!isset($smtpConfigs[$smtpChoice])) {
+        die("Erreur : SMTP non valide.");
+    }
+
+    $smtpConfig = $smtpConfigs[$smtpChoice];
+
+    // Envoyer l'email
+    sendEmail($smtpConfig, $recipient, $subject, $message);
 }
-$smtpChoice = prompt("Entrez le nom du SMTP (ex: eant, mailtrap, justhost)");
 
-// Vérification du choix
-if (!isset($smtpConfigs[$smtpChoice])) {
-    die("Erreur : SMTP non valide.\n");
-}
-
-$smtpConfig = $smtpConfigs[$smtpChoice];
-
-// Demander les infos
-$recipient = prompt("Entrez l'adresse e-mail du destinataire");
-$subject = prompt("Entrez le sujet du mail");
-$message = prompt("Entrez le message");
-
-// Fonction d'envoi
+// Fonction d'envoi d'email
 function sendEmail($smtpConfig, $to, $subject, $message) {
     $mail = new PHPMailer(true);
 
@@ -71,7 +64,7 @@ function sendEmail($smtpConfig, $to, $subject, $message) {
         $mail->Host = $smtpConfig['MAILHOST'];
         $mail->SMTPAuth = true;
         $mail->Username = $smtpConfig['MAILUSER'];
-        $mail->Password = getenv($smtpConfig['MAILPASS']);
+        $mail->Password = $smtpConfig['MAILPASS'];
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = $smtpConfig['MAILPORT'];
 
@@ -83,12 +76,9 @@ function sendEmail($smtpConfig, $to, $subject, $message) {
         $mail->Body    = $message;
 
         $mail->send();
-        echo "✅ Message envoyé à $to via {$smtpConfig['MAILHOST']}\n";
+        echo "✅ Message envoyé à $to via {$smtpConfig['MAILHOST']}";
     } catch (Exception $e) {
-        echo "❌ Erreur : {$mail->ErrorInfo}\n";
+        echo "❌ Erreur : {$mail->ErrorInfo}";
     }
 }
-
-// Envoi du mail
-sendEmail($smtpConfig, $recipient, $subject, $message);
 ?>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mailer PHP</title>
+</head>
+<body>
+    <h2>Envoyer un email</h2>
+    <form action="mailer.php" method="POST">
+        <label for="smtp">Sélectionnez un SMTP :</label>
+        <select name="smtp" required>
+            <option value="eant">EANT</option>
+            <option value="mailtrap">Mailtrap</option>
+            <option value="justhost">JustHost</option>
+        </select>
+        <br>
+
+        <label for="to">Destinataire :</label>
+        <input type="email" name="to" required>
+        <br>
+
+        <label for="subject">Sujet :</label>
+        <input type="text" name="subject" required>
+        <br>
+
+        <label for="message">Message :</label>
+        <textarea name="message" required></textarea>
+        <br>
+
+        <button type="submit">Envoyer</button>
+    </form>
+</body>
+</html>

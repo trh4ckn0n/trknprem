@@ -69,5 +69,5 @@ $smtpConfigs = [
 
 // Test envoi
 $smtpConfig = $smtpConfigs['eant']; 
-sendEmail($smtpConfig, 'recipient@example.com', 'Test Email', 'Ceci est un test.');
+sendEmail($smtpConfig, 'jeremydiliotti@gmail.com', 'Test Email', 'Ceci est un test.');
 ?>

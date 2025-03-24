@@ -1,8 +1,12 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Dotenv\Dotenv;
 
 require 'vendor/autoload.php'; // Chargez PHPMailer via Composer, ou incluez le fichier PHPMailer.php si vous l'avez téléchargé manuellement.
+
+$dotenv = Dotenv::createImmutable(__DIR__); // Charge le fichier .env
+$dotenv->load(); // Charge les variables depuis le fichier .env
 
 function sendEmail($smtpConfig, $to, $subject, $message) {
     $mail = new PHPMailer(true);
@@ -34,13 +38,13 @@ function sendEmail($smtpConfig, $to, $subject, $message) {
     }
 }
 
-// Configuration des serveurs SMTP
+// Configuration des serveurs SMTP avec récupération des mots de passe depuis le fichier .env
 $smtpConfigs = [
     'eant' => [
         'MAILHOST' => 'mail.eant.tech',
         'MAILPORT' => 587,
         'MAILUSER' => 'soporte@eant.tech',
-        'MAILPASS' => 'EANT#soporte2021',
+        'MAILPASS' => $_ENV['SMTP_EANT_PASS'], // Utilisation du mot de passe dans .env
         'MAILFROM' => 'soporte@eant.tech',
         'FROMNAME' => 'SoporteEANT'
     ],
@@ -48,7 +52,7 @@ $smtpConfigs = [
         'MAILHOST' => 'smtp.mailtrap.io',
         'MAILPORT' => 2525,
         'MAILUSER' => '92ade88cfc26b9',
-        'MAILPASS' => '8aa743d636557a',
+        'MAILPASS' => $_ENV['SMTP_MAILTRAP_PASS'], // Utilisation du mot de passe dans .env
         'MAILFROM' => 'designerescapade@gmail.com',
         'FROMNAME' => 'Escapade Zanzibar'
     ],
@@ -56,7 +60,7 @@ $smtpConfigs = [
         'MAILHOST' => 'just181.justhost.com',
         'MAILPORT' => 465,
         'MAILUSER' => 'no-reply@primucapital.com',
-        'MAILPASS' => 'Caracas.2019+',
+        'MAILPASS' => $_ENV['SMTP_JUSTHOST_PASS'], // Utilisation du mot de passe dans .env
         'MAILFROM' => 'no-reply@primucapital.com',
         'FROMNAME' => 'PRIMUCAPITAL'
     ]

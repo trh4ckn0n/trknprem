@@ -7,36 +7,12 @@ use Dotenv\Dotenv;
 
 // Charge .env
 $dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->safeLoad(); // Utiliser safeLoad() pour éviter les erreurs si le fichier est absent
+$dotenv->safeLoad();
 
-function sendEmail($smtpConfig, $to, $subject, $message) {
-    $mail = new PHPMailer(true);
-
-    try {
-        // Paramètres SMTP
-        $mail->isSMTP();
-        $mail->Host = $smtpConfig['MAILHOST'];
-        $mail->SMTPAuth = true;
-        $mail->Username = $smtpConfig['MAILUSER'];
-        $mail->Password = getenv($smtpConfig['MAILPASS']); // Récupère le mot de passe depuis .env
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = $smtpConfig['MAILPORT'];
-
-        // Expéditeur
-        $mail->setFrom($smtpConfig['MAILFROM'], $smtpConfig['FROMNAME']);
-        $mail->addAddress($to);
-
-        // Contenu de l'email
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $message;
-
-        // Envoi
-        $mail->send();
-        echo "Message envoyé à $to";
-    } catch (Exception $e) {
-        echo "Erreur: {$mail->ErrorInfo}";
-    }
+// Fonction d'affichage pour interactivité
+function prompt($message) {
+    echo $message . " : ";
+    return trim(fgets(STDIN));
 }
 
 // Configs SMTP
@@ -45,7 +21,7 @@ $smtpConfigs = [
         'MAILHOST' => 'mail.eant.tech',
         'MAILPORT' => 587,
         'MAILUSER' => 'soporte@eant.tech',
-        'MAILPASS' => 'MAILPASS_EANT', // Clé pour .env
+        'MAILPASS' => 'MAILPASS_EANT',
         'MAILFROM' => 'soporte@eant.tech',
         'FROMNAME' => 'SoporteEANT'
     ],
@@ -67,7 +43,52 @@ $smtpConfigs = [
     ]
 ];
 
-// Test envoi
-$smtpConfig = $smtpConfigs['eant']; 
-sendEmail($smtpConfig, 'jeremydiliotti@gmail.com', 'Test Email', 'Ceci est un test.');
+// Sélection du SMTP
+echo "\nSélectionnez un SMTP : \n";
+foreach (array_keys($smtpConfigs) as $key) {
+    echo "- $key\n";
+}
+$smtpChoice = prompt("Entrez le nom du SMTP (ex: eant, mailtrap, justhost)");
+
+// Vérification du choix
+if (!isset($smtpConfigs[$smtpChoice])) {
+    die("Erreur : SMTP non valide.\n");
+}
+
+$smtpConfig = $smtpConfigs[$smtpChoice];
+
+// Demander les infos
+$recipient = prompt("Entrez l'adresse e-mail du destinataire");
+$subject = prompt("Entrez le sujet du mail");
+$message = prompt("Entrez le message");
+
+// Fonction d'envoi
+function sendEmail($smtpConfig, $to, $subject, $message) {
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = $smtpConfig['MAILHOST'];
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpConfig['MAILUSER'];
+        $mail->Password = getenv($smtpConfig['MAILPASS']);
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = $smtpConfig['MAILPORT'];
+
+        $mail->setFrom($smtpConfig['MAILFROM'], $smtpConfig['FROMNAME']);
+        $mail->addAddress($to);
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $message;
+
+        $mail->send();
+        echo "✅ Message envoyé à $to via {$smtpConfig['MAILHOST']}\n";
+    } catch (Exception $e) {
+        echo "❌ Erreur : {$mail->ErrorInfo}\n";
+    }
+}
+
+// Envoi du mail
+sendEmail($smtpConfig, $recipient, $subject, $message);
 ?>
